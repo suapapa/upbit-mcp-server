@@ -6,8 +6,8 @@ import uvicorn
 from mcp.server.sse import SseServerTransport
 from starlette.applications import Starlette
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse
-from starlette.routing import Route
+from starlette.responses import JSONResponse, Response
+from starlette.routing import Mount, Route
 
 
 class BearerTokenMiddleware(BaseHTTPMiddleware):
@@ -29,7 +29,7 @@ class BearerTokenMiddleware(BaseHTTPMiddleware):
 
 async def run_sse_async(mcp, token: str | None = None) -> None:
     """Run the MCP server over SSE, optionally requiring a Bearer token."""
-    sse = SseServerTransport("/messages")
+    sse = SseServerTransport("/messages/")
 
     async def handle_sse(request):
         async with sse.connect_sse(
@@ -40,15 +40,13 @@ async def run_sse_async(mcp, token: str | None = None) -> None:
                 streams[1],
                 mcp._mcp_server.create_initialization_options(),
             )
-
-    async def handle_messages(request):
-        await sse.handle_post_message(request.scope, request.receive, request._send)
+        return Response()
 
     starlette_app = Starlette(
         debug=mcp.settings.debug,
         routes=[
             Route("/sse", endpoint=handle_sse),
-            Route("/messages", endpoint=handle_messages, methods=["POST"]),
+            Mount("/messages/", app=sse.handle_post_message),
         ],
     )
 
