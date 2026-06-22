@@ -18,7 +18,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-install-project
 
 # Copy application source code
-COPY main.py config.py ./
+COPY main.py config.py sse_auth.py ./
 COPY tools/ ./tools/
 COPY prompts/ ./prompts/
 COPY resources/ ./resources/
@@ -30,6 +30,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # use `--env-file .env` instead
 # ENV UPBIT_ACCESS_KEY=""
 # ENV UPBIT_SECRET_KEY=""
+# ENV UPBIT_MCP_SSE_TOKEN=""
 
 EXPOSE 8000
 

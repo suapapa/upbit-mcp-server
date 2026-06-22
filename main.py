@@ -1,7 +1,8 @@
 # main.py
+import asyncio
+
 from fastmcp import FastMCP
-from config import UPBIT_ACCESS_KEY, UPBIT_SECRET_KEY, API_BASE
-import httpx
+from config import UPBIT_ACCESS_KEY, UPBIT_SECRET_KEY, UPBIT_MCP_SSE_TOKEN
 
 from tools.get_ticker import get_ticker
 from tools.get_orderbook import get_orderbook
@@ -84,8 +85,16 @@ if __name__ == "__main__":
     print(f"업비트 MCP 서버가 {args.transport} 모드로 시작되었습니다!")
     
     if args.transport == "sse":
+        from sse_auth import run_sse_async
+
         mcp.settings.host = args.host
         mcp.settings.port = args.port
-        mcp.run(transport="sse")
+
+        if UPBIT_MCP_SSE_TOKEN:
+            print("🔒 SSE Bearer 토큰 인증이 활성화되었습니다.")
+        else:
+            print("⚠️  경고: UPBIT_MCP_SSE_TOKEN이 설정되지 않았습니다. SSE 엔드포인트가 보호되지 않습니다.")
+
+        asyncio.run(run_sse_async(mcp, token=UPBIT_MCP_SSE_TOKEN))
     else:
         mcp.run(transport="stdio")

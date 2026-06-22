@@ -11,6 +11,9 @@ load_dotenv()
 UPBIT_ACCESS_KEY = os.environ.get("UPBIT_ACCESS_KEY")
 UPBIT_SECRET_KEY = os.environ.get("UPBIT_SECRET_KEY")
 
+# SSE transport Bearer token (optional; when set, /sse and /messages require Authorization)
+UPBIT_MCP_SSE_TOKEN = os.environ.get("UPBIT_MCP_SSE_TOKEN")
+
 # API 기본 URL
 API_BASE = "https://api.upbit.com/v1"
 
