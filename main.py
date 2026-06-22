@@ -58,5 +58,34 @@ mcp.prompt()(order_help)
 mcp.prompt()(trading_strategy)
 
 if __name__ == "__main__":
-    print("업비트 MCP 서버가 시작되었습니다!")
-    mcp.run(transport="stdio")  # Claude, gomcp 연동용
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="Upbit MCP Server")
+    parser.add_argument(
+        "--transport",
+        choices=["stdio", "sse"],
+        default="stdio",
+        help="Transport protocol to use (default: stdio)"
+    )
+    parser.add_argument(
+        "--host",
+        default="0.0.0.0",
+        help="Host to bind for SSE transport (default: 0.0.0.0)"
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8000,
+        help="Port to bind for SSE transport (default: 8000)"
+    )
+    
+    args = parser.parse_args()
+    
+    print(f"업비트 MCP 서버가 {args.transport} 모드로 시작되었습니다!")
+    
+    if args.transport == "sse":
+        mcp.settings.host = args.host
+        mcp.settings.port = args.port
+        mcp.run(transport="sse")
+    else:
+        mcp.run(transport="stdio")
