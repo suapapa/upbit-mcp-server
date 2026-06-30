@@ -4,9 +4,11 @@ from typing import Literal, Optional
 from upbit_client import format_api_error, get_public_client, to_serializable
 
 CANDLE_METHODS = {
+    "second": "list_seconds",
     "day": "list_days",
     "week": "list_weeks",
     "month": "list_months",
+    "year": "list_years",
 }
 
 MINUTE_UNITS = {
@@ -24,6 +26,7 @@ MINUTE_UNITS = {
 async def get_candles(
     market: str,
     interval: Literal[
+        "second",
         "minute1",
         "minute3",
         "minute5",
@@ -35,6 +38,7 @@ async def get_candles(
         "day",
         "week",
         "month",
+        "year",
     ],
     count: int = 200,
     to: Optional[str] = None,
@@ -45,7 +49,7 @@ async def get_candles(
 
     Args:
         market (str): 마켓 코드 (예: KRW-BTC)
-        interval (str): 시간 간격 (minute1~minute240, day, week, month)
+        interval (str): 시간 간격 (second, minute1~minute240, day, week, month, year)
         count (int): 캔들 개수 (최대 200)
         to (str, optional): 마지막 캔들 시각 (형식: yyyy-MM-dd'T'HH:mm:ss'Z' 또는 yyyy-MM-dd HH:mm:ss)
 

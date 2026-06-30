@@ -24,7 +24,7 @@
 
 | 구분 | SDK 메서드 수 | MCP 제공 | 구현만 됨 | 미구현 |
 |------|--------------|----------|-----------|--------|
-| REST API | 48 | 14 | 3 | 31 |
+| REST API | 48 | 23 | 0 | 25 |
 | WebSocket | 2 | 0 | 0 | 2 |
 
 > SDK 메서드 48개 + WebSocket 2개 = 총 50개 항목 기준
@@ -53,7 +53,7 @@
 
 | SDK 메서드 | HTTP | MCP | MCP 이름 | 비고 |
 |------------|------|-----|----------|------|
-| `client.wallet_status.list` | `GET /v1/status/wallet` | ❌ | — | |
+| `client.wallet_status.list` | `GET /v1/status/wallet` | ✅ | `get_wallet_status` | |
 
 ---
 
@@ -76,9 +76,9 @@
 | `client.orders.list_closed` | `GET /v1/orders/closed` | ✅ | `get_orders` | `state=done\|cancel` 시 사용 |
 | `client.orders.cancel_and_new` | `POST /v1/orders/cancel_and_new` | ❌ | — | |
 | `client.orders.cancel_by_uuids` | `DELETE /v1/orders/uuids` | ❌ | — | |
-| `client.orders.cancel_open` | `DELETE /v1/orders/open` | ❌ | — | |
+| `client.orders.cancel_open` | `DELETE /v1/orders/open` | ✅ | `cancel_open_orders` | |
 | `client.orders.list_by_uuids` | `GET /v1/orders/uuids` | ❌ | — | |
-| `client.orders.retrieve_chance` | `GET /v1/orders/chance` | ❌ | — | |
+| `client.orders.retrieve_chance` | `GET /v1/orders/chance` | ✅ | `get_order_chance` | |
 | `client.orders.test_create` | `POST /v1/orders/test` | ❌ | — | |
 
 ---
@@ -90,9 +90,9 @@
 | `client.withdraws.retrieve` | `GET /v1/withdraw` | ❌ | — | |
 | `client.withdraws.list` | `GET /v1/withdraws` | ✅ | `get_deposits_withdrawals` | `transaction_type=withdraw` |
 | `client.withdraws.cancel_withdrawal` | `DELETE /v1/withdraws/coin` | ❌ | — | |
-| `client.withdraws.create_krw_withdrawal` | `POST /v1/withdraws/krw` | 🔶 | `create_withdraw` | 미등록 |
-| `client.withdraws.create_withdrawal` | `POST /v1/withdraws/coin` | 🔶 | `create_withdraw` | 미등록 |
-| `client.withdraws.list_coin_addresses` | `GET /v1/withdraws/coin_addresses` | ❌ | — | |
+| `client.withdraws.create_krw_withdrawal` | `POST /v1/withdraws/krw` | ✅ | `create_withdraw` | |
+| `client.withdraws.create_withdrawal` | `POST /v1/withdraws/coin` | ✅ | `create_withdraw` | |
+| `client.withdraws.list_coin_addresses` | `GET /v1/withdraws/coin_addresses` | ✅ | `list_withdraw_coin_addresses` | |
 | `client.withdraws.retrieve_chance` | `GET /v1/withdraws/chance` | ❌ | — | |
 
 ---
@@ -107,7 +107,7 @@
 | `client.deposits.deposit_krw` | `POST /v1/deposits/krw` | ❌ | — | |
 | `client.deposits.list_coin_addresses` | `GET /v1/deposits/coin_addresses` | ❌ | — | |
 | `client.deposits.retrieve_chance` | `GET /v1/deposits/chance/coin` | ❌ | — | |
-| `client.deposits.retrieve_coin_address` | `GET /v1/deposits/coin_address` | ❌ | — | |
+| `client.deposits.retrieve_coin_address` | `GET /v1/deposits/coin_address` | ✅ | `get_deposit_coin_address` | |
 
 ---
 
@@ -150,13 +150,13 @@
 
 | SDK 메서드 | HTTP | MCP | MCP 이름 | 비고 |
 |------------|------|-----|----------|------|
-| `client.candles.list_minutes` | `GET /v1/candles/minutes/{unit}` | 🔶 | `get_candles` | minute1~240 지원, 미등록 |
-| `client.candles.list_days` | `GET /v1/candles/days` | 🔶 | `get_candles` | 미등록 |
-| `client.candles.list_weeks` | `GET /v1/candles/weeks` | 🔶 | `get_candles` | 미등록 |
-| `client.candles.list_months` | `GET /v1/candles/months` | 🔶 | `get_candles` | 미등록 |
-| `client.candles.list_seconds` | `GET /v1/candles/seconds` | ❌ | — | |
-| `client.candles.list_years` | `GET /v1/candles/years` | ❌ | — | |
-| `client.candles.*` | — | 🔶 | `technical_analysis` (Composite) | `list_minutes` / `list_days` 사용, 미등록 |
+| `client.candles.list_minutes` | `GET /v1/candles/minutes/{unit}` | ✅ | `get_candles` | minute1~240 지원 |
+| `client.candles.list_days` | `GET /v1/candles/days` | ✅ | `get_candles` | |
+| `client.candles.list_weeks` | `GET /v1/candles/weeks` | ✅ | `get_candles` | |
+| `client.candles.list_months` | `GET /v1/candles/months` | ✅ | `get_candles` | |
+| `client.candles.list_seconds` | `GET /v1/candles/seconds` | ✅ | `get_candles` | `interval=second` |
+| `client.candles.list_years` | `GET /v1/candles/years` | ✅ | `get_candles` | `interval=year` |
+| `client.candles.*` | — | ✅ | `technical_analysis` (Composite) | `list_minutes` / `list_days` 사용 |
 
 ---
 
@@ -184,24 +184,30 @@
 
 ## `main.py` 등록 현황
 
-### 등록된 Tool (10개)
+### 등록된 Tool (18개)
 
 - [x] `get_ticker`
 - [x] `get_orderbook`
 - [x] `get_trades`
+- [x] `get_candles`
 - [x] `get_accounts`
 - [x] `create_order`
 - [x] `get_orders`
 - [x] `get_order`
+- [x] `get_order_chance`
 - [x] `cancel_order`
+- [x] `cancel_open_orders`
 - [x] `get_market_summary`
 - [x] `get_deposits_withdrawals`
+- [x] `create_withdraw`
+- [x] `get_deposit_coin_address`
+- [x] `list_withdraw_coin_addresses`
+- [x] `get_wallet_status`
+- [x] `technical_analysis`
 
-### 구현됐으나 미등록 Tool (3개)
+### 구현됐으나 미등록 Tool
 
-- [ ] `get_candles` — `tools/get_candles.py`
-- [ ] `create_withdraw` — `tools/create_withdraw.py`
-- [ ] `technical_analysis` — `tools/technical_analysis.py`
+없음 (모든 구현 도구가 `main.py`에 등록됨)
 
 ### 등록된 Resource (1개)
 
@@ -216,16 +222,16 @@
 
 ---
 
-## 우선 추가 후보
+## 추가 구현 후보
 
-SDK는 지원하지만 MCP에 아직 없는 기능 중, 기존 도구와 연관이 높은 항목입니다.
+아래 SDK 기능은 아직 MCP에 없습니다.
 
-1. `get_candles`, `technical_analysis` — `main.py` 등록
-2. `create_withdraw` — `main.py` 등록
-3. `client.orders.retrieve_chance` — 주문 가능 수량/수수료 사전 확인
-4. `client.orders.cancel_open` — 미체결 주문 일괄 취소
-5. `client.deposits.retrieve_coin_address` / `client.withdraws.list_coin_addresses` — 입출금 주소 조회
-6. `client.wallet_status.list` — 지갑 점검 상태 확인
+1. `client.orders.test_create` — 테스트 주문
+2. `client.orders.cancel_and_new` — 주문 취소 후 신규 주문
+3. `client.orders.cancel_by_uuids` — UUID 목록 일괄 취소
+4. `client.orders.list_by_uuids` — UUID 목록 주문 조회
+5. `client.deposits.list_coin_addresses` — 입금 주소 목록 조회
+6. TravelRule, APIKeys 관련 API
 
 ---
 

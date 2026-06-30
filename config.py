@@ -87,7 +87,7 @@ def is_valid_interval(interval):
         bool: 유효한 시간 간격인지 여부
     """
     valid_minutes = [f"minute{i}" for i in [1, 3, 5, 10, 15, 30, 60, 240]]
-    valid_others = ["day", "week", "month"]
+    valid_others = ["second", "day", "week", "month", "year"]
     
     return interval in valid_minutes + valid_others
 
