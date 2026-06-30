@@ -30,6 +30,10 @@ from prompts.trading_strategy import trading_strategy
 
 from resources.get_market_list import get_market_list
 
+from mcp_context import patch_fastmcp_context_logging
+from mcp_logging import install_tool_call_logging
+
+patch_fastmcp_context_logging()
 
 if not UPBIT_ACCESS_KEY or not UPBIT_SECRET_KEY:
     print("⚠️  경고: 업비트 API 키가 설정되지 않았습니다. 공개 API만 사용 가능합니다.")
@@ -73,6 +77,8 @@ mcp.prompt()(explain_ticker)
 mcp.prompt()(analyze_portfolio)
 mcp.prompt()(order_help)
 mcp.prompt()(trading_strategy)
+
+install_tool_call_logging(mcp)
 
 if __name__ == "__main__":
     import argparse

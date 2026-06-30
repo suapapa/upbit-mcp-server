@@ -1,6 +1,9 @@
-from fastmcp import Context
-from typing import Literal, Optional
+from typing import Any, Literal, Optional, cast
 
+from fastmcp import Context
+
+from format_output import format_candles_yaml
+from mcp_context import ctx_error, ctx_info, ctx_warning
 from upbit_client import format_api_error, get_public_client, to_serializable
 
 CANDLE_METHODS = {
@@ -11,7 +14,9 @@ CANDLE_METHODS = {
     "year": "list_years",
 }
 
-MINUTE_UNITS = {
+MinuteUnit = Literal[1, 3, 5, 10, 15, 30, 60, 240]
+
+MINUTE_UNITS: dict[str, MinuteUnit] = {
     "minute1": 1,
     "minute3": 3,
     "minute5": 5,
@@ -42,8 +47,8 @@ async def get_candles(
     ],
     count: int = 200,
     to: Optional[str] = None,
-    ctx: Context = None,
-) -> list[dict]:
+    ctx: Context | None = None,
+) -> str:
     """
     업비트에서 캔들스틱 데이터를 조회합니다.
 
@@ -54,19 +59,17 @@ async def get_candles(
         to (str, optional): 마지막 캔들 시각 (형식: yyyy-MM-dd'T'HH:mm:ss'Z' 또는 yyyy-MM-dd HH:mm:ss)
 
     Returns:
-        list[dict]: 캔들스틱 데이터
+        str: YAML 형식의 캔들스틱 데이터
     """
     if count > 200:
         count = 200
-        if ctx:
-            ctx.warning("최대 200개의 캔들만 조회할 수 있습니다. count를 200으로 제한합니다.")
+        await ctx_warning(ctx, "최대 200개의 캔들만 조회할 수 있습니다. count를 200으로 제한합니다.")
 
     params = {"market": market, "count": count}
     if to:
         params["to"] = to
 
-    if ctx:
-        ctx.info(f"{market} {interval} 캔들 데이터 조회 중...")
+    await ctx_info(ctx, f"{market} {interval} 캔들 데이터 조회 중...")
 
     try:
         client = get_public_client()
@@ -78,8 +81,9 @@ async def get_candles(
             method = getattr(candles_resource, CANDLE_METHODS[interval])
             candles = await method(**params)
 
-        return to_serializable(candles)
+        candle_dicts = cast(list[dict[str, Any]], to_serializable(candles))
+        return format_candles_yaml(candle_dicts, market, interval)
     except Exception as e:
-        if ctx:
-            ctx.error(format_api_error(e))
-        return [{"error": format_api_error(e)}]
+        error_message = format_api_error(e)
+        await ctx_error(ctx, error_message)
+        return f"error: {error_message}\n"

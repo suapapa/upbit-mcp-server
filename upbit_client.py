@@ -1,6 +1,6 @@
 from typing import Any
 
-from upbit import APIStatusError, AsyncUpbit, UpbitError
+from upbit import APIError, APIStatusError, AsyncUpbit, UpbitError
 
 from config import UPBIT_ACCESS_KEY, UPBIT_SECRET_KEY
 
@@ -42,6 +42,8 @@ def to_serializable(obj: Any) -> Any:
 def format_api_error(error: Exception) -> str:
     if isinstance(error, APIStatusError):
         return f"업비트 API 오류: {error.status_code} - {error.message}"
-    if isinstance(error, UpbitError):
+    if isinstance(error, APIError):
         return f"업비트 API 오류: {error.message}"
+    if isinstance(error, UpbitError):
+        return f"업비트 API 오류: {str(error)}"
     return f"API 호출 중 오류 발생: {str(error)}"
