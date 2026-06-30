@@ -16,6 +16,9 @@ class BearerTokenMiddleware(BaseHTTPMiddleware):
         self._token = token
 
     async def dispatch(self, request, call_next):
+        if request.url.path == "/health":
+            return await call_next(request)
+
         auth_header = request.headers.get("Authorization", "")
         if not auth_header.startswith("Bearer "):
             return JSONResponse({"detail": "Unauthorized"}, status_code=401)
@@ -42,9 +45,13 @@ async def run_sse_async(mcp, token: str | None = None) -> None:
             )
         return Response()
 
+    async def health(_request):
+        return JSONResponse({"status": "ok"})
+
     starlette_app = Starlette(
         debug=mcp.settings.debug,
         routes=[
+            Route("/health", endpoint=health),
             Route("/sse", endpoint=handle_sse),
             Mount("/messages/", app=sse.handle_post_message),
         ],
