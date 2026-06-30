@@ -10,33 +10,12 @@ A server implementation for [Upbit](https://upbit.com) Cryptocurrency Exchange O
 - Deposit and withdrawal functions
 - Technical analysis tools
 
-<details>
-  <summary><strong>수행가능한 기능 목록</strong></summary>
-  <br/>
+## Documentation
 
-  <h4>시장 데이터 조회</h4>
-  <ul>
-    <li>현재 암호화폐 시세 조회 (<code>get_ticker</code>)</li>
-    <li>호가창 정보 조회 (<code>get_orderbook</code>)</li>
-    <li>최근 체결 내역 조회 (<code>get_trades</code>)</li>
-    <li>주요 암호화폐 시장 요약 정보 확인 (<code>get_market_summary</code>)</li>
-  </ul>
-
-  <h4>계정 정보 조회</h4>
-  <ul>
-    <li>보유 중인 자산 목록 및 잔고 확인 (<code>get_accounts</code>)</li>
-    <li>주문 내역 조회 (<code>get_orders</code>)</li>
-    <li>특정 주문 상세 정보 조회 (<code>get_order</code>)</li>
-    <li>입출금 내역 조회 (<code>get_deposits_withdrawals</code>)</li>
-  </ul>
-
-  <h4>거래 기능</h4>
-  <ul>
-    <li>지정가/시장가 매수 주문 생성 (<code>create_order</code>)</li>
-    <li>지정가/시장가 매도 주문 생성 (<code>create_order</code>)</li>
-    <li>주문 취소 (<code>cancel_order</code>)</li>
-  </ul>
-</details>
+| 문서 | 설명 |
+|------|------|
+| [MCP 도구 소개](docs/mcp-tools.md) | Tool, Resource, Prompt 목록 및 설명 |
+| [Upbit SDK ↔ MCP 구현 현황](docs/upbit-sdk-mcp-coverage.md) | SDK 대비 MCP 커버리지 체크리스트 |
 
 <details>
   <summary><strong>채팅 예시</strong></summary>
@@ -56,95 +35,90 @@ Before you begin, you need to get your Upbit API keys:
 2. Go to the [Upbit Developer Center](https://upbit.com/service_center/open_api_guide)
 3. Create a new API key
 4. Make sure to set appropriate permissions (read, trade, withdraw as needed)
-5. Store your API keys(`UPBIT_ACCESS_KEY`, `UPBIT_SECRET_KEY`) in the `.env` file (see Installation section)
+5. Store your API keys in a `.env` file (see Usage section)
 
-## Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/solangii/upbit-mcp-server.git
-   cd upbit-mcp-server
-   ```
-
-2. Install dependencies:
-   ```bash
-   cd upbit-mcp-server
-   uv sync
-   ```
-   
-   If you don't have `uv` installed yet, you can install it as follows:
-   
-   Using `uv` provides faster installation and more reliable dependency resolution.
-
-   ```bash
-   # Install uv
-   curl -Ls https://astral.sh/uv/install.sh | sh
-   
-    # Add uv to your PATH
-   echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
-   source ~/.zshrc  # or bashrc, depending on your shell
-   ```
-
-3. Set up environment variables:
-   Create a `.env` file in the project root and add your Upbit API keys:
-   ```
-   UPBIT_ACCESS_KEY=your_access_key_here
-   UPBIT_SECRET_KEY=your_secret_key_here
-   ```
+> 공개 API(시세, 호가, 캔들 등)만 사용할 경우 API 키 없이도 동작합니다.
 
 ## Usage
 
-### Install in Claude Desktop
+이 MCP 서버는 Docker 컨테이너로 SSE transport(`http://0.0.0.0:8000/sse`)를 통해 실행됩니다.
 
-#### Option 1: Using Claude config file (Direct integration)
+### 1. 환경 변수 설정
 
-You can add the MCP server directly to Claude's configuration file:
+프로젝트 루트에 `.env` 파일을 만듭니다.
 
-1. Install [Claude Desktop](https://claude.ai/download)
-
-2. Add the following to your Claude Desktop configuration:
-
-   - macOS: ``~/Library/Application Support/Claude/claude_desktop_config.json`
-   - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
-
-3. Add the following configuration (adjust paths as needed):
-   ```json
-   {
-     "mcpServers": {
-       "upbit-mcp-server": {
-         "command": "/full/path/to/upbit-mcp-server/.venv/bin/python",
-         "args": [
-           "/full/path/to/upbit-mcp-server/main.py"
-         ]
-       }
-     }
-   }
-   ```
-   
-4. Restart Claude to load the new configuration.
-
-#### Option 2: Using fastmcp
-
-```bash
-fastmcp install main.py --name "Upbit API"
+```env
+UPBIT_ACCESS_KEY=your_access_key_here
+UPBIT_SECRET_KEY=your_secret_key_here
+UPBIT_MCP_SSE_TOKEN=your_sse_bearer_token_here
 ```
 
-### Run Directly with Python
+| 변수 | 필수 | 설명 |
+|------|------|------|
+| `UPBIT_ACCESS_KEY` | 선택 | 업비트 Access Key (계정·주문·입출금 API) |
+| `UPBIT_SECRET_KEY` | 선택 | 업비트 Secret Key |
+| `UPBIT_MCP_SSE_TOKEN` | 권장 | SSE 엔드포인트 Bearer 인증 토큰. 미설정 시 `/sse`, `/messages`가 보호되지 않습니다. |
+
+### 2. Docker 이미지 실행
+
+**GHCR에서 pull (권장)**
 
 ```bash
-uv run python main.py
+docker pull ghcr.io/suapapa/upbit-mcp-server:latest
+
+docker run -d \
+  --name upbit-mcp-server \
+  --env-file .env \
+  -p 8000:8000 \
+  ghcr.io/suapapa/upbit-mcp-server:latest
 ```
 
-### Development Mode (Web Interface)
+**로컬에서 빌드**
 
 ```bash
-fastmcp dev main.py
+git clone https://github.com/suapapa/upbit-mcp-server.git
+cd upbit-mcp-server
+
+docker build -t upbit-mcp-server .
+
+docker run -d \
+  --name upbit-mcp-server \
+  --env-file .env \
+  -p 8000:8000 \
+  upbit-mcp-server
 ```
+
+컨테이너가 정상 기동되었는지 확인합니다.
+
+```bash
+curl http://localhost:8000/health
+# {"status":"ok"}
+```
+
+### 3. MCP 클라이언트 연결
+
+SSE transport를 지원하는 MCP 클라이언트에서 아래와 같이 설정합니다.
+
+```json
+{
+  "mcpServers": {
+    "upbit-mcp-server": {
+      "url": "http://localhost:8000/sse",
+      "headers": {
+        "Authorization": "Bearer your_sse_bearer_token_here"
+      }
+    }
+  }
+}
+```
+
+`UPBIT_MCP_SSE_TOKEN`을 설정하지 않은 경우 `headers` 항목은 생략할 수 있습니다.
 
 ## Caution
 
 - This server can process real trades, so use it carefully.
 - Keep your API keys secure and never commit them to public repositories.
+- `UPBIT_MCP_SSE_TOKEN`을 설정하여 SSE 엔드포인트를 외부에 노출할 때 반드시 보호하세요.
 
 ## License
 
