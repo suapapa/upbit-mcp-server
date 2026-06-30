@@ -33,8 +33,8 @@ mcp = FastMCP(
     "Upbit MCP Server", 
     description="Upbit 암호화폐 거래소 API와 연동된 MCP 서버",
     dependencies=[
-        "httpx>=0.27.0",
-        "pyjwt",
+        "fastmcp>=0.1.8",
+        "upbit-sdk>=0.9.0",
         "python-dotenv",
         "numpy"
     ]

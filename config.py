@@ -1,7 +1,4 @@
 import os
-import uuid
-import jwt
-import hashlib
 from dotenv import load_dotenv
 
 # .env 파일에서 환경 변수 로드
@@ -14,38 +11,9 @@ UPBIT_SECRET_KEY = os.environ.get("UPBIT_SECRET_KEY")
 # SSE transport Bearer token (optional; when set, /sse and /messages require Authorization)
 UPBIT_MCP_SSE_TOKEN = os.environ.get("UPBIT_MCP_SSE_TOKEN")
 
-# API 기본 URL
-API_BASE = "https://api.upbit.com/v1"
-
 # API 키 검증
 if not UPBIT_ACCESS_KEY or not UPBIT_SECRET_KEY:
     print("경고: 업비트 API 키가 설정되지 않았습니다. 공개 API만 사용 가능합니다.")
-
-# Upbit API 인증을 위한 JWT 토큰 생성 함수
-def generate_upbit_token(query_params=None):
-    """
-    업비트 API 인증을 위한 JWT 토큰 생성
-    
-    Args:
-        query_params (dict, optional): 쿼리 파라미터
-        
-    Returns:
-        str: JWT 토큰
-    """
-    payload = {
-        'access_key': UPBIT_ACCESS_KEY,
-        'nonce': str(uuid.uuid4()),
-    }
-    
-    if query_params:
-        query_string = '&'.join([f"{key}={value}" for key, value in query_params.items()])
-        m = hashlib.sha512()
-        m.update(query_string.encode())
-        query_hash = m.hexdigest()
-        payload['query_hash'] = query_hash
-        payload['query_hash_alg'] = 'SHA512'
-    
-    return jwt.encode(payload, UPBIT_SECRET_KEY)
 
 # 마켓 코드 유효성 검사 함수
 def is_valid_market(market_code):

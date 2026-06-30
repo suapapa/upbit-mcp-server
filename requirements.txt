@@ -1,5 +1,4 @@
 fastmcp>=0.1.8
-httpx>=0.27.0
-pyjwt
+upbit-sdk>=0.9.0
 python-dotenv
 numpy

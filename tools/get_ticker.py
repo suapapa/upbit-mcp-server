@@ -1,9 +1,11 @@
-import httpx
-from config import API_BASE
+from upbit_client import format_api_error, get_public_client, to_serializable
+
 
 async def get_ticker(symbol: str) -> dict:
     """Get the latest ticker data from Upbit"""
-    url = f"{API_BASE}/ticker"
-    async with httpx.AsyncClient() as client:
-        res = await client.get(url, params={"markets": symbol})
-        return res.json()[0]
+    try:
+        client = get_public_client()
+        tickers = await client.tickers.list_by_trading_pairs(markets=symbol)
+        return to_serializable(tickers[0])
+    except Exception as e:
+        return {"error": format_api_error(e)}
