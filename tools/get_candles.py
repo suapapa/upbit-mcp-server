@@ -2,7 +2,7 @@ from typing import Any, Literal, Optional, cast
 
 from fastmcp import Context
 
-from format_output import format_candles_yaml
+from format_output import format_candles_csv
 from mcp_context import ctx_error, ctx_info, ctx_warning
 from upbit_client import format_api_error, get_public_client, to_serializable
 
@@ -59,7 +59,7 @@ async def get_candles(
         to (str, optional): 마지막 캔들 시각 (형식: yyyy-MM-dd'T'HH:mm:ss'Z' 또는 yyyy-MM-dd HH:mm:ss)
 
     Returns:
-        str: YAML 형식의 캔들스틱 데이터
+        str: CSV 형식의 캔들스틱 데이터
     """
     if count > 200:
         count = 200
@@ -82,7 +82,7 @@ async def get_candles(
             candles = await method(**params)
 
         candle_dicts = cast(list[dict[str, Any]], to_serializable(candles))
-        return format_candles_yaml(candle_dicts, market, interval)
+        return format_candles_csv(candle_dicts, market, interval)
     except Exception as e:
         error_message = format_api_error(e)
         await ctx_error(ctx, error_message)
